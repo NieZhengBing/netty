@@ -76,11 +76,19 @@ public class NIOServer {
 	 * @throws IOException
 	 */
 	public void handleKeyRead(SelectionKey key) throws IOException {
-		ServerSocketChannel server = (ServerSocketChannel) key.channel();
-		SocketChannel channel =  server.accept();
-		channel.configureBlocking(false);
-		System.out.println("new client connect");
-		channel.register(this.selector, SelectionKey.OP_READ);
+		SocketChannel channel = (SocketChannel) key.channel();
+		ByteBuffer buffer = ByteBuffer.allocate(1024);
+		int read = channel.read(buffer);
+		if (read > 0) {
+			byte[] data = buffer.array();
+			String msg = new String(data).trim();
+			System.out.println("server accept message: " + msg);
+			ByteBuffer outBuffer = ByteBuffer.wrap("OK".getBytes());
+			channel.write(outBuffer);
+		} else {
+			System.out.println("client close");
+			key.cancel();
+		}
 	}
 
 	/***
@@ -89,20 +97,11 @@ public class NIOServer {
 	 * @throws IOException
 	 */
 	public void handleAccept(SelectionKey key) throws IOException {
-		SocketChannel channel = (SocketChannel) key.channel();
-		ByteBuffer buffer = ByteBuffer.allocate(1024);
-		int read = channel.read(buffer);
-		if (read > 0) {
-			byte[] data = buffer.array();
-			String message = new String(data).trim();
-			System.out.println("server receive the message " + message);
-			ByteBuffer outBuffer = ByteBuffer.wrap("ok".getBytes());
-			channel.write(outBuffer);
-		} else {
-			System.out.println("client close");
-			key.channel();
-		}
+		ServerSocketChannel server = (ServerSocketChannel) key.channel();
+		SocketChannel channel = server.accept();
+		channel.configureBlocking(false);
+		System.out.println("new client connect");
+		channel.register(this.selector, SelectionKey.OP_READ);
 	}
-	
  
 }
