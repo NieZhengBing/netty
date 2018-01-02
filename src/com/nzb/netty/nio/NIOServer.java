@@ -20,7 +20,7 @@ public class NIOServer {
 	 * @throws IOException 
 	 */
 	
-	public static void mian(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException {
 		NIOServer server = new NIOServer();
 		server.initServer(8000);
 	}
